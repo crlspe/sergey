@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 const fs = require('fs');
 const { performance } = require('perf_hooks');
 const marked = require('marked');
@@ -8,10 +9,10 @@ require('dotenv').config();
  * Environment varibales
  */
 const getEnv = (argKey, envKey) => {
-  return (
-    process.env[envKey] ||
-    (process.argv.find(x => x.startsWith(argKey)) || '').replace(argKey, '')
-  );
+    return (
+        process.env[envKey] ||
+        (process.argv.find(x => x.startsWith(argKey)) || '').replace(argKey, '')
+    );
 };
 const isWatching = process.argv.includes('--watch');
 
@@ -28,156 +29,156 @@ const OUTPUT_LOCAL = getEnv('--output=', 'SERGEY_OUTPUT') || 'public';
 const OUTPUT = `${ROOT}${OUTPUT_LOCAL}/`;
 
 const ACTIVE_CLASS =
-  getEnv('--active-class=', 'SERGEY_ACTIVE_CLASS') || 'active';
+    getEnv('--active-class=', 'SERGEY_ACTIVE_CLASS') || 'active';
 
 const EXCLUDE = (getEnv('--exclude=', 'SERGEY_EXCLUDE') || '')
-  .split(',')
-  .map(x => x.trim())
-  .filter(Boolean);
+    .split(',')
+    .map(x => x.trim())
+    .filter(Boolean);
 
 const VERBOSE = false;
 const cachedImports = {};
 
 const excludedFolders = [
-  '.git',
-  '.DS_Store',
-  '.prettierrc',
-  'node_modules',
-  'package.json',
-  'package-lock.json',
-  IMPORTS_LOCAL,
-  OUTPUT_LOCAL,
-  ...EXCLUDE
+    '.git',
+    '.DS_Store',
+    '.prettierrc',
+    'node_modules',
+    'package.json',
+    'package-lock.json',
+    IMPORTS_LOCAL,
+    OUTPUT_LOCAL,
+    ...EXCLUDE
 ];
 
 const patterns = {
-  whitespace: /^\s+|\s+$/g,
-  templates: /<sergey-template name="([a-zA-Z0-9-_.\\\/]*)">(.*?)<\/sergey-template>/gms,
-  complexNamedSlots: /<sergey-slot name="([a-zA-Z0-9-_.\\\/]*)">(.*?)<\/sergey-slot>/gms,
-  simpleNamedSlots: /<sergey-slot name="([a-zA-Z0-9-_.\\\/]*)"\s?\/>/gm,
-  complexDefaultSlots: /<sergey-slot>(.*?)<\/sergey-slot>/gms,
-  simpleDefaultSlots: /<sergey-slot\s?\/>/gm,
-  complexImports: /<sergey-import src="([a-zA-Z0-9-_.\\\/]*)"(?:\sas="(.*?)")?>(.*?)<\/sergey-import>/gms,
-  simpleImports: /<sergey-import src="([a-zA-Z0-9-_.\\\/]*)"(?:\sas="(.*?)")?\s?\/>/gm,
-  links: /<sergey-link\s?(.*?)(?:to|href)="([a-zA-Z0-9-_.#?\\\/]*)"\s?(.*?)>(.*?)<\/sergey-link>/gms
+    whitespace: /^\s+|\s+$/g,
+    templates: /<sergey-template name="([a-zA-Z0-9-_.\\\/]*)">(.*?)<\/sergey-template>/gms,
+    complexNamedSlots: /<sergey-slot name="([a-zA-Z0-9-_.\\\/]*)">(.*?)<\/sergey-slot>/gms,
+    simpleNamedSlots: /<sergey-slot name="([a-zA-Z0-9-_.\\\/]*)"\s?\/>/gm,
+    complexDefaultSlots: /<sergey-slot>(.*?)<\/sergey-slot>/gms,
+    simpleDefaultSlots: /<sergey-slot\s?\/>/gm,
+    complexImports: /<sergey-import src="([a-zA-Z0-9-_.\\\/]*)"(?:\sas="(.*?)")?>(.*?)<\/sergey-import>/gms,
+    simpleImports: /<sergey-import src="([a-zA-Z0-9-_.\\\/]*)"(?:\sas="(.*?)")?\s?\/>/gm,
+    links: /<sergey-link\s?(.*?)(?:to|href)="([a-zA-Z0-9-_.#?\\\/]*)"\s?(.*?)>(.*?)<\/sergey-link>/gms
 };
 
 /**
  * FS utils
  */
 const copyFile = (src, dest) => {
-  return new Promise((resolve, reject) => {
-    fs.copyFile(src, dest, err => {
-      if (err) {
-        return reject(err);
-      } else {
-        VERBOSE && console.log(`Copied ${src}`);
-        resolve();
-      }
+    return new Promise((resolve, reject) => {
+        fs.copyFile(src, dest, err => {
+            if (err) {
+                return reject(err);
+            } else {
+                VERBOSE && console.log(`Copied ${src}`);
+                resolve();
+            }
+        });
     });
-  });
 };
 
 const createFolder = path => {
-  return new Promise((resolve, reject) => {
-    fs.readdir(path, (err, data) => {
-      if (err) {
-        fs.mkdir(path, (err, data) => {
-          return err ? reject(`Couldn't create folder: ${path}`) : resolve();
+    return new Promise((resolve, reject) => {
+        fs.readdir(path, (err, data) => {
+            if (err) {
+                fs.mkdir(path, (err, data) => {
+                    return err ? reject(`Couldn't create folder: ${path}`) : resolve();
+                });
+            } else {
+                return resolve();
+            }
         });
-      } else {
-        return resolve();
-      }
     });
-  });
 };
 
 const readDir = path => {
-  return new Promise((resolve, reject) => {
-    fs.readdir(path, (err, data) => (err ? reject(err) : resolve(data)));
-  });
+    return new Promise((resolve, reject) => {
+        fs.readdir(path, (err, data) => (err ? reject(err) : resolve(data)));
+    });
 };
 
 const readFile = path => {
-  return new Promise((resolve, reject) => {
-    fs.readFile(path, (err, data) =>
-      err ? reject(err) : resolve(data.toString())
-    );
-  });
+    return new Promise((resolve, reject) => {
+        fs.readFile(path, (err, data) =>
+            err ? reject(err) : resolve(data.toString())
+        );
+    });
 };
 
 const writeFile = (path, body) => {
-  return new Promise((resolve, reject) => {
-    fs.writeFile(path, body, err => {
-      if (err) {
-        return reject(err);
-      }
+    return new Promise((resolve, reject) => {
+        fs.writeFile(path, body, err => {
+            if (err) {
+                return reject(err);
+            }
 
-      VERBOSE && console.log(`Saved ${path}`);
-      return resolve();
+            VERBOSE && console.log(`Saved ${path}`);
+            return resolve();
+        });
     });
-  });
 };
 
-const clearOutputFolder = async () => {
-  const deleteFolder = path => {
-    if (fs.existsSync(path)) {
-      fs.readdirSync(path).forEach(function(file, index) {
-        const newPath = path + '/' + file;
-        if (fs.lstatSync(newPath).isDirectory()) {
-          deleteFolder(newPath);
-        } else {
-          fs.unlinkSync(newPath);
+const clearOutputFolder = async() => {
+    const deleteFolder = path => {
+        if (fs.existsSync(path)) {
+            fs.readdirSync(path).forEach(function(file, index) {
+                const newPath = path + '/' + file;
+                if (fs.lstatSync(newPath).isDirectory()) {
+                    deleteFolder(newPath);
+                } else {
+                    fs.unlinkSync(newPath);
+                }
+            });
+            fs.rmdirSync(path);
         }
-      });
-      fs.rmdirSync(path);
-    }
-  };
+    };
 
-  return deleteFolder(OUTPUT);
+    return deleteFolder(OUTPUT);
 };
 
 const getAllFiles = (path, filter, exclude = false) => {
-  path = path.endsWith('/') ? path.substring(0, path.length - 1) : path;
+    path = path.endsWith('/') ? path.substring(0, path.length - 1) : path;
 
-  const files = [];
-  const filesToIgnore = [...excludedFolders];
-  if (!filter) {
-    filter = () => true;
-  }
+    const files = [];
+    const filesToIgnore = [...excludedFolders];
+    if (!filter) {
+        filter = () => true;
+    }
 
-  if (exclude) {
-    const importIndex = filesToIgnore.indexOf(IMPORTS_LOCAL);
-    if (importIndex !== -1) filesToIgnore.splice(importIndex, 1);
+    if (exclude) {
+        const importIndex = filesToIgnore.indexOf(IMPORTS_LOCAL);
+        if (importIndex !== -1) filesToIgnore.splice(importIndex, 1);
 
-    const contentIndex = filesToIgnore.indexOf(CONTENT_LOCAL);
-    if (contentIndex !== -1) filesToIgnore.splice(contentIndex, 1);
-  }
+        const contentIndex = filesToIgnore.indexOf(CONTENT_LOCAL);
+        if (contentIndex !== -1) filesToIgnore.splice(contentIndex, 1);
+    }
 
-  if (fs.existsSync(path)) {
-    fs.readdirSync(path).forEach((file, index) => {
-      if (filesToIgnore.find(x => file.startsWith(x))) {
-        return;
-      }
+    if (fs.existsSync(path)) {
+        fs.readdirSync(path).forEach((file, index) => {
+            if (filesToIgnore.find(x => file.startsWith(x))) {
+                return;
+            }
 
-      const newPath = path + '/' + file;
-      if (fs.lstatSync(newPath).isDirectory()) {
-        files.push(...getAllFiles(newPath, filter, exclude));
-      } else {
-        if (!filter(file)) {
-          return;
-        }
+            const newPath = path + '/' + file;
+            if (fs.lstatSync(newPath).isDirectory()) {
+                files.push(...getAllFiles(newPath, filter, exclude));
+            } else {
+                if (!filter(file)) {
+                    return;
+                }
 
-        files.push(newPath);
-      }
-    });
-  }
+                files.push(newPath);
+            }
+        });
+    }
 
-  return files;
+    return files;
 };
 
 const getFilesToWatch = path => {
-  return getAllFiles(path, '', true);
+    return getAllFiles(path, '', true);
 };
 
 /**
@@ -185,336 +186,336 @@ const getFilesToWatch = path => {
  */
 const formatContent = x => x.replace(patterns.whitespace, '');
 const getKey = (key, ext = '.html', folder = '') => {
-  const file = key.endsWith(ext) ? key : `${key}${ext}`;
-  return `${folder}${file}`;
+    const file = key.endsWith(ext) ? key : `${key}${ext}`;
+    return `${folder}${file}`;
 };
 const hasImports = x => x.includes('<sergey-import');
 const hasLinks = x => x.includes('<sergey-link');
 const primeExcludedFiles = name => {
-  if (!excludedFolders.includes(name)) {
-    excludedFolders.push(name);
-  }
+    if (!excludedFolders.includes(name)) {
+        excludedFolders.push(name);
+    }
 };
 const cleanPath = path => path.replace('index.html', '').split('#')[0];
 const isCurrentPage = (ref, path) => path && cleanPath(path) === cleanPath(ref);
 const isParentPage = (ref, path) =>
-  path && cleanPath(path).startsWith(cleanPath(ref));
+    path && cleanPath(path).startsWith(cleanPath(ref));
 
 /**
  * #business logic
  */
 const prepareImports = async folder => {
-  const fileNames = await getAllFiles(folder);
-  const bodies = await Promise.all(fileNames.map(readFile));
-  fileNames.forEach((path, i) => primeImport(path, bodies[i]));
+    const fileNames = await getAllFiles(folder);
+    const bodies = await Promise.all(fileNames.map(readFile));
+    fileNames.forEach((path, i) => primeImport(path, bodies[i]));
 };
 
 const primeImport = (path, body) => {
-  cachedImports[path] = body;
+    cachedImports[path] = body;
 };
 
 const getSlots = content => {
-  // Extract templates first
-  const slots = {
-    default: formatContent(content) || ''
-  };
+    // Extract templates first
+    const slots = {
+        default: formatContent(content) || ''
+    };
 
-  // Search content for templates
-  while ((m = patterns.templates.exec(content)) !== null) {
-    if (m.index === patterns.templates.lastIndex) {
-      patterns.templates.lastIndex++;
+    // Search content for templates
+    while ((m = patterns.templates.exec(content)) !== null) {
+        if (m.index === patterns.templates.lastIndex) {
+            patterns.templates.lastIndex++;
+        }
+
+        const [find, name, data] = m;
+        if (name !== 'default') {
+            // Remove it from the default content
+            slots.default = slots.default.replace(find, '');
+        }
+
+        // Add it as a named slot
+        slots[name] = formatContent(data);
     }
 
-    const [find, name, data] = m;
-    if (name !== 'default') {
-      // Remove it from the default content
-      slots.default = slots.default.replace(find, '');
-    }
+    slots.default = formatContent(slots.default);
 
-    // Add it as a named slot
-    slots[name] = formatContent(data);
-  }
-
-  slots.default = formatContent(slots.default);
-
-  return slots;
+    return slots;
 };
 
 const compileSlots = (body, slots) => {
-  let m;
-  let copy;
+    let m;
+    let copy;
 
-  // Complex named slots
-  copy = body;
-  while ((m = patterns.complexNamedSlots.exec(body)) !== null) {
-    if (m.index === patterns.complexNamedSlots.lastIndex) {
-      patterns.complexNamedSlots.lastIndex++;
+    // Complex named slots
+    copy = body;
+    while ((m = patterns.complexNamedSlots.exec(body)) !== null) {
+        if (m.index === patterns.complexNamedSlots.lastIndex) {
+            patterns.complexNamedSlots.lastIndex++;
+        }
+
+        const [find, name, fallback] = m;
+        copy = copy.replace(find, slots[name] || fallback || '');
     }
+    body = copy;
 
-    const [find, name, fallback] = m;
-    copy = copy.replace(find, slots[name] || fallback || '');
-  }
-  body = copy;
+    // Simple named slots
+    while ((m = patterns.simpleNamedSlots.exec(body)) !== null) {
+        if (m.index === patterns.simpleNamedSlots.lastIndex) {
+            patterns.simpleNamedSlots.lastIndex++;
+        }
 
-  // Simple named slots
-  while ((m = patterns.simpleNamedSlots.exec(body)) !== null) {
-    if (m.index === patterns.simpleNamedSlots.lastIndex) {
-      patterns.simpleNamedSlots.lastIndex++;
+        const [find, name] = m;
+        copy = copy.replace(find, slots[name] || '');
     }
+    body = copy;
 
-    const [find, name] = m;
-    copy = copy.replace(find, slots[name] || '');
-  }
-  body = copy;
+    // Complex Default slots
+    while ((m = patterns.complexDefaultSlots.exec(body)) !== null) {
+        if (m.index === patterns.complexDefaultSlots.lastIndex) {
+            patterns.complexDefaultSlots.lastIndex++;
+        }
 
-  // Complex Default slots
-  while ((m = patterns.complexDefaultSlots.exec(body)) !== null) {
-    if (m.index === patterns.complexDefaultSlots.lastIndex) {
-      patterns.complexDefaultSlots.lastIndex++;
+        const [find, fallback] = m;
+        copy = copy.replace(find, slots.default || fallback || '');
     }
+    body = copy;
 
-    const [find, fallback] = m;
-    copy = copy.replace(find, slots.default || fallback || '');
-  }
-  body = copy;
+    // Simple default slots
+    body = body.replace(patterns.simpleDefaultSlots, slots.default);
 
-  // Simple default slots
-  body = body.replace(patterns.simpleDefaultSlots, slots.default);
-
-  return body;
+    return body;
 };
 
 const compileImport = (body, pattern) => {
-  let m;
-  // Simple imports
-  while ((m = pattern.exec(body)) !== null) {
-    if (m.index === pattern.lastIndex) {
-      pattern.lastIndex++;
+    let m;
+    // Simple imports
+    while ((m = pattern.exec(body)) !== null) {
+        if (m.index === pattern.lastIndex) {
+            pattern.lastIndex++;
+        }
+
+        let [find, key, htmlAs = '', content = ''] = m;
+        let replace = '';
+
+        if (htmlAs === 'markdown') {
+            replace = formatContent(
+                marked(cachedImports[getKey(key, '.md', CONTENT)] || '')
+            );
+        } else {
+            replace = cachedImports[getKey(key, '.html', IMPORTS)] || '';
+        }
+
+        const slots = getSlots(content);
+
+        // Recurse
+        replace = compileTemplate(replace, slots);
+        body = body.replace(find, replace);
     }
 
-    let [find, key, htmlAs = '', content = ''] = m;
-    let replace = '';
-
-    if (htmlAs === 'markdown') {
-      replace = formatContent(
-        marked(cachedImports[getKey(key, '.md', CONTENT)] || '')
-      );
-    } else {
-      replace = cachedImports[getKey(key, '.html', IMPORTS)] || '';
-    }
-
-    const slots = getSlots(content);
-
-    // Recurse
-    replace = compileTemplate(replace, slots);
-    body = body.replace(find, replace);
-  }
-
-  return body;
+    return body;
 };
 
 const compileTemplate = (body, slots = { default: '' }) => {
-  body = compileSlots(body, slots);
+    body = compileSlots(body, slots);
 
-  if (!hasImports(body)) {
+    if (!hasImports(body)) {
+        return body;
+    }
+
+    body = compileImport(body, patterns.simpleImports);
+    body = compileImport(body, patterns.complexImports);
+
     return body;
-  }
-
-  body = compileImport(body, patterns.simpleImports);
-  body = compileImport(body, patterns.complexImports);
-
-  return body;
 };
 
 const compileLinks = (body, path) => {
-  let m;
-  let copy;
+    let m;
+    let copy;
 
-  if (!hasLinks(body)) {
-    return body;
-  }
-
-  copy = body;
-  while ((m = patterns.links.exec(body)) !== null) {
-    if (m.index === patterns.links.lastIndex) {
-      patterns.links.lastIndex++;
+    if (!hasLinks(body)) {
+        return body;
     }
 
-    let [find, attr1 = '', to, attr2 = '', content] = m;
-    let replace = '';
-    let attributes = [`href="${to}"`, attr1, attr2]
-      .map(x => x.trim())
-      .filter(Boolean)
-      .join(' ');
+    copy = body;
+    while ((m = patterns.links.exec(body)) !== null) {
+        if (m.index === patterns.links.lastIndex) {
+            patterns.links.lastIndex++;
+        }
 
-    const isCurrent = isCurrentPage(to, path);
-    if (isCurrent || isParentPage(to, path)) {
-      if (attributes.includes('class="')) {
-        attributes = attributes.replace('class="', `class="${ACTIVE_CLASS} `);
-      } else {
-        attributes += ` class="${ACTIVE_CLASS}"`;
-      }
+        let [find, attr1 = '', to, attr2 = '', content] = m;
+        let replace = '';
+        let attributes = [`href="${to}"`, attr1, attr2]
+            .map(x => x.trim())
+            .filter(Boolean)
+            .join(' ');
 
-      if (isCurrent) {
-        attributes += ' aria-current="page"';
-      }
-    }
-
-    replace = `<a ${attributes}>${content}</a>`;
-    copy = copy.replace(find, replace);
-  }
-  body = copy;
-
-  return body;
-};
-
-const compileFolder = async (localFolder, localPublicFolder) => {
-  const fullFolderPath = `${ROOT}${localFolder}`;
-  const fullPublicPath = `${ROOT}${localPublicFolder}`;
-
-  if (localPublicFolder) {
-    await createFolder(fullPublicPath);
-  }
-
-  return new Promise((resolve, reject) => {
-    fs.readdir(fullFolderPath, async (err, files) => {
-      if (err) {
-        return reject(`Folder: ${fullFolderPath} doesn't exist`);
-      }
-
-      Promise.all(
-        files
-          .filter(x => {
-            return !excludedFolders.find(y => x.startsWith(y));
-          })
-          .map(async localFilePath => {
-            const fullFilePath = `${fullFolderPath}${localFilePath}`;
-            const fullPublicFilePath = `${fullPublicPath}${localFilePath}`;
-            const fullLocalFilePath = `/${localFolder}${localFilePath}`;
-
-            if (localFilePath.endsWith('.html')) {
-              return readFile(fullFilePath)
-                .then(compileTemplate)
-                .then(body => compileLinks(body, fullLocalFilePath))
-                .then(body => writeFile(fullPublicFilePath, body));
+        const isCurrent = isCurrentPage(to, path);
+        if (isCurrent || isParentPage(to, path)) {
+            if (attributes.includes('class="')) {
+                attributes = attributes.replace('class="', `class="${ACTIVE_CLASS} `);
+            } else {
+                attributes += ` class="${ACTIVE_CLASS}"`;
             }
 
-            return new Promise((resolve, reject) => {
-              fs.stat(fullFilePath, async (err, stat) => {
-                if (err) {
-                  return reject(err);
-                }
+            if (isCurrent) {
+                attributes += ' aria-current="page"';
+            }
+        }
 
-                if (stat && stat.isDirectory()) {
-                  await compileFolder(
-                    `${localFolder}${localFilePath}/`,
-                    `${OUTPUT_LOCAL}/${localFolder}${localFilePath}/`
-                  );
-                } else {
-                  await copyFile(fullFilePath, fullPublicFilePath);
-                }
-                return resolve();
-              });
-            });
-          })
-      )
-        .then(resolve)
-        .catch(reject);
-    });
-  });
+        replace = `<a ${attributes}>${content}</a>`;
+        copy = copy.replace(find, replace);
+    }
+    body = copy;
+
+    return body;
 };
 
-const compileFiles = async () => {
-  try {
-    await readDir(IMPORTS);
-  } catch (e) {
-    console.error(`No ${IMPORTS} folder found`);
-    return;
-  }
+const compileFolder = async(localFolder, localPublicFolder) => {
+    const fullFolderPath = `${ROOT}${localFolder}`;
+    const fullPublicPath = `${ROOT}${localPublicFolder}`;
 
-  try {
-    const start = performance.now();
-
-    await clearOutputFolder();
-    await prepareImports(IMPORTS);
-
-    if (IMPORTS !== CONTENT) {
-      try {
-        await readDir(CONTENT);
-        await prepareImports(CONTENT);
-      } catch (e) {}
+    if (localPublicFolder) {
+        await createFolder(fullPublicPath);
     }
 
-    await compileFolder('', `${OUTPUT_LOCAL}/`);
+    return new Promise((resolve, reject) => {
+        fs.readdir(fullFolderPath, async(err, files) => {
+            if (err) {
+                return reject(`Folder: ${fullFolderPath} doesn't exist`);
+            }
 
-    const end = performance.now();
+            Promise.all(
+                    files
+                    .filter(x => {
+                        return !excludedFolders.find(y => x.startsWith(y));
+                    })
+                    .map(async localFilePath => {
+                        const fullFilePath = `${fullFolderPath}${localFilePath}`;
+                        const fullPublicFilePath = `${fullPublicPath}${localFilePath}`;
+                        const fullLocalFilePath = `/${localFolder}${localFilePath}`;
 
-    console.log(`Compiled in ${Math.ceil(end - start)}ms`);
-  } catch (e) {
-    console.log(e);
-  }
+                        if (localFilePath.endsWith('.html')) {
+                            return readFile(fullFilePath)
+                                .then(compileTemplate)
+                                .then(body => compileLinks(body, fullLocalFilePath))
+                                .then(body => writeFile(fullPublicFilePath, body));
+                        }
+
+                        return new Promise((resolve, reject) => {
+                            fs.stat(fullFilePath, async(err, stat) => {
+                                if (err) {
+                                    return reject(err);
+                                }
+
+                                if (stat && stat.isDirectory()) {
+                                    await compileFolder(
+                                        `${localFolder}${localFilePath}/`,
+                                        `${OUTPUT_LOCAL}/${localFolder}${localFilePath}/`
+                                    );
+                                } else {
+                                    await copyFile(fullFilePath, fullPublicFilePath);
+                                }
+                                return resolve();
+                            });
+                        });
+                    })
+                )
+                .then(resolve)
+                .catch(reject);
+        });
+    });
 };
 
-const excludeGitIgnoreContents = async () => {
-  try {
-    const ignore = await readFile('./.gitignore');
-    const exclusions = ignore
-      .split('\n')
-      .map(x => (x.endsWith('/') ? x.substring(0, x.length - 1) : x))
-      .map(x => (x.startsWith('/') ? x.substring(1, x.length) : x))
-      .filter(Boolean)
-      .map(primeExcludedFiles);
-  } catch (e) {}
+const compileFiles = async() => {
+    try {
+        await readDir(IMPORTS);
+    } catch (e) {
+        console.error(`No ${IMPORTS} folder found`);
+        return;
+    }
+
+    try {
+        const start = performance.now();
+
+        await clearOutputFolder();
+        await prepareImports(IMPORTS);
+
+        if (IMPORTS !== CONTENT) {
+            try {
+                await readDir(CONTENT);
+                await prepareImports(CONTENT);
+            } catch (e) {}
+        }
+
+        await compileFolder('', `${OUTPUT_LOCAL}/`);
+
+        const end = performance.now();
+
+        console.log(`Compiled in ${Math.ceil(end - start)}ms`);
+    } catch (e) {
+        console.log(e);
+    }
 };
 
-const sergeyRuntime = async () => {
-  if (!OUTPUT.startsWith('./')) {
-    console.error('DANGER! Make sure you start the root with a ./');
-    return;
-  }
+const excludeGitIgnoreContents = async() => {
+    try {
+        const ignore = await readFile('./.gitignore');
+        const exclusions = ignore
+            .split('\n')
+            .map(x => (x.endsWith('/') ? x.substring(0, x.length - 1) : x))
+            .map(x => (x.startsWith('/') ? x.substring(1, x.length) : x))
+            .filter(Boolean)
+            .map(primeExcludedFiles);
+    } catch (e) {}
+};
 
-  if (!ROOT.endsWith('/')) {
-    console.error('Make sure you end the root with a /');
-    return;
-  }
+const sergeyRuntime = async() => {
+    if (!OUTPUT.startsWith('./')) {
+        console.error('DANGER! Make sure you start the root with a ./');
+        return;
+    }
 
-  await excludeGitIgnoreContents();
-  await compileFiles();
+    if (!ROOT.endsWith('/')) {
+        console.error('Make sure you end the root with a /');
+        return;
+    }
 
-  if (isWatching) {
-    const chokidar = require('chokidar');
-    const connect = require('connect');
-    const serveStatic = require('serve-static');
+    await excludeGitIgnoreContents();
+    await compileFiles();
 
-    const watchRoot = ROOT.endsWith('/')
-      ? ROOT.substring(0, ROOT.length - 1)
-      : ROOT;
-    let ignored = (OUTPUT.endsWith('/')
-      ? OUTPUT.substring(0, OUTPUT.length - 1)
-      : OUTPUT
-    ).replace('./', '');
+    if (isWatching) {
+        const chokidar = require('chokidar');
+        const liveServer = require("live-server");
 
-    const task = async () => await compileFiles();
+        const watchRoot = ROOT.endsWith('/') ?
+            ROOT.substring(0, ROOT.length - 1) :
+            ROOT;
+        let ignored = (OUTPUT.endsWith('/') ?
+            OUTPUT.substring(0, OUTPUT.length - 1) :
+            OUTPUT
+        ).replace('./', '');
 
-    const watcher = chokidar.watch(watchRoot, { ignored, ignoreInitial: true });
-    watcher.on('change', task);
-    watcher.on('add', task);
-    watcher.on('unlink', task);
+        const task = async() => await compileFiles();
 
-    connect()
-      .use(serveStatic(OUTPUT))
-      .listen(PORT, function() {
-        console.log(`Sergey running on http://localhost:${PORT}`);
-      });
-  }
+        const watcher = chokidar.watch(watchRoot, { ignored, ignoreInitial: true });
+        watcher.on('all', task);
+        var params = {
+            watch: "./public",
+            root: "./public",
+            file: "index.html",
+            wait: 1000,
+            logLevel: 0,
+        };
+        liveServer.start(params);
+
+    }
 };
 
 module.exports = {
-  sergeyRuntime,
-  compileTemplate,
-  compileLinks,
-  primeImport,
-  CONTENT,
-  IMPORTS,
-  ACTIVE_CLASS
+    sergeyRuntime,
+    compileTemplate,
+    compileLinks,
+    primeImport,
+    CONTENT,
+    IMPORTS,
+    ACTIVE_CLASS
 };
